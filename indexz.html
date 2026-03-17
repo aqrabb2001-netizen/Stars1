@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#080c17">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>مستكشف النجوم ✦ خريطة تفاعلية</title>
+<style>
+:root{
+  --bg:#06090f;--bg2:#0d1526;--bg3:#111e35;--bg4:#162040;
+  --gold:#c9973a;--gold2:#f5c842;
+  --cyan:#3ecfb8;--red:#e05555;
+  --text:#e8dfc8;--text2:#7a6a50;
+  --border:#1e2e4a;--border2:#2a3e60;
+  --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Tahoma,Arial,sans-serif;font-size:14px;display:flex;flex-direction:column}
+
+/* NAV */
+.nav{display:flex;background:var(--bg2);border-bottom:2px solid var(--border2);flex-shrink:0}
+.nav-btn{flex:1;padding:12px 4px 10px;font-size:10px;font-weight:600;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;text-align:center;line-height:1.4}
+.nav-btn .ico{display:block;font-size:18px;margin-bottom:2px}
+.nav-btn.active{color:var(--gold2);border-bottom-color:var(--gold)}
+
+/* PAGES */
+.page{display:none;flex:1;overflow-y:auto;padding:12px;flex-direction:column}
+.page.active{display:flex}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;margin-bottom:12px;flex-shrink:0}
+.card-title{font-size:13px;color:var(--gold2);margin-bottom:12px;display:flex;align-items:center;gap:7px;font-weight:600}
+
+/* FORM */
+label{display:block;font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:600}
+input{width:100%;padding:10px 12px;background:var(--bg3);border:1.5px solid var(--border);color:var(--text);border-radius:8px;font-size:14px;outline:none;transition:.2s}
+input:focus{border-color:var(--gold);background:var(--bg4)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg{margin-bottom:12px}
+
+/* DROPDOWN */
+.sw{position:relative}
+.star-input{cursor:pointer;padding-left:32px}
+.dd-arrow{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:12px;pointer-events:none}
+.dropdown{position:absolute;top:calc(100% + 4px);right:0;left:0;background:var(--bg3);border:1.5px solid var(--gold);border-radius:10px;max-height:220px;overflow:hidden;z-index:500;display:none;box-shadow:0 8px 30px rgba(0,0,0,.6);flex-direction:column}
+.dropdown.open{display:flex}
+.dd-search-wrap{padding:8px;border-bottom:1px solid var(--border);flex-shrink:0}
+.dd-search-wrap input{border-color:var(--border2);font-size:13px;padding:7px 10px}
+.dd-list{overflow-y:auto;flex:1}
+.dd-item{padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(30,46,74,.4);display:flex;justify-content:space-between;align-items:center}
+.dd-item:hover{background:rgba(201,151,58,.15);color:var(--gold2)}
+.dd-tag{font-size:10px;color:var(--cyan);background:rgba(62,207,184,.1);padding:2px 6px;border-radius:10px}
+
+/* MODE TABS */
+.mode-tabs{display:flex;gap:6px;margin-bottom:14px}
+.mode-tab{flex:1;padding:9px;text-align:center;border-radius:8px;border:1.5px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;transition:.2s;font-weight:600}
+.mode-tab.active{background:rgba(201,151,58,.15);border-color:var(--gold);color:var(--gold2)}
+
+/* BTN */
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#c9832a,#8a5515);color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:700;letter-spacing:1px;transition:.15s;box-shadow:0 4px 15px rgba(180,100,20,.3)}
+.btn:active{opacity:.85;transform:scale(.98)}
+
+/* SUMMARY */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sum-box{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;text-align:center}
+.sum-label{font-size:10px;color:var(--text2);margin-bottom:4px}
+.sum-val{font-size:16px;color:var(--gold2);font-weight:700}
+.sum-val.c{color:var(--cyan)}
+
+/* RESULT TABS */
+.res-tabs{display:flex;gap:0;margin-bottom:0;flex-shrink:0;background:var(--bg3);border-radius:10px 10px 0 0;overflow:hidden;border:1px solid var(--border2);border-bottom:none}
+.res-tab{flex:1;padding:10px 6px;text-align:center;color:var(--text2);font-size:12px;cursor:pointer;transition:.2s;font-weight:600;border-left:1px solid var(--border2)}
+.res-tab:last-child{border-left:none}
+.res-tab.active{background:var(--bg4);color:var(--gold2);border-bottom:2px solid var(--gold)}
+
+/* TABLE CONTAINER */
+.tbl-container{background:var(--bg3);border:1px solid var(--border2);border-radius:0 0 10px 10px;display:flex;flex-direction:column;flex:1;min-height:0}
+.count-bar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);flex-shrink:0}
+.res-header{display:grid;grid-template-columns:1fr 85px 85px;padding:7px 12px;font-size:11px;color:var(--gold);border-bottom:1px solid var(--border2);font-weight:600;cursor:pointer;flex-shrink:0}
+.res-header span:not(:first-child){text-align:center}
+.res-list{overflow-y:auto;flex:1}
+.res-row{display:grid;grid-template-columns:1fr 85px 85px;padding:10px 12px;border-bottom:1px solid rgba(30,46,74,.5);align-items:center;transition:.15s}
+.res-row:hover{background:rgba(201,151,58,.07)}
+.res-row.corner{background:rgba(62,207,184,.04)}
+.rname{font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rname.corner{color:var(--cyan)}
+.rtag{display:inline-block;font-size:9px;color:var(--cyan);background:rgba(62,207,184,.1);padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle}
+.rdist{text-align:center;font-size:14px;color:var(--gold2);font-weight:700}
+.rbear{text-align:center;font-size:14px;color:var(--cyan);font-weight:600}
+.no-data{text-align:center;padding:30px;color:var(--text2);font-size:13px}
+
+/* SEARCH */
+.sbar{position:relative;flex-shrink:0;padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.sbar input{padding-right:34px;background:var(--bg4);border-color:var(--border2);font-size:13px}
+.sbar::before{content:'🔍';position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none}
+
+/* ERR */
+.err{color:var(--red);font-size:12px;padding:9px 12px;background:rgba(224,85,85,.1);border-radius:8px;margin-top:10px;border:1px solid rgba(224,85,85,.2)}
+.tip{text-align:center;padding:16px;color:var(--text2);font-size:12px;line-height:1.6}
+
+/* ROTATED manual settings */
+.rot-settings{display:flex;gap:8px;align-items:flex-end;flex-shrink:0;margin-bottom:12px}
+.rot-settings .fg{flex:1;margin-bottom:0}
+.rot-settings .btn{width:auto;padding:10px 18px;font-size:13px;flex-shrink:0}
+
+/* MAP */
+.map-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:8px;border-radius:8px;width:100%;font-size:13px;margin-bottom:10px}
+.map-select option{background:var(--bg2);color:var(--text)}
+#starMap{width:100%;height:auto;cursor:grab;touch-action:pan-x pan-y;}
+#starMap:active{cursor:grabbing}
+
+.clear-save{background:transparent;border:1px solid var(--border2);color:var(--text2);padding:8px;border-radius:8px;margin-top:8px;cursor:pointer;font-size:12px;transition:.2s}
+.clear-save:hover{background:var(--bg3);color:var(--red)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('input')">
+    <span class="ico">⚙️</span>إدخال
+  </button>
+  <button class="nav-btn" onclick="showPage('results')">
+    <span class="ico">📊</span>النتائج
+  </button>
+  <button class="nav-btn" onclick="showPage('rotated')">
+    <span class="ico">🔃</span>مدار
+  </button>
+  <button class="nav-btn" onclick="showPage('map')">
+    <span class="ico">🗺️</span>خريطة
+  </button>
+</div>
+
+<!-- ══ PAGE INPUT ══ -->
+<div class="page active" id="page-input">
+  <div class="card">
+    <div class="card-title">✦ وضع الإدخال</div>
+    <div class="mode-tabs">
+      <div class="mode-tab active" onclick="setMode(1,this)">نجمان معروفان</div>
+      <div class="mode-tab" onclick="setMode(2,this)">نجم + تحجيم + إدارة</div>
+    </div>
+
+    <div id="mode1">
+      <div class="fg">
+        <label>نجم أ</label>
+        <div class="sw">
+          <input class="star-input" id="starA_display" placeholder="اختر أو ابحث…" readonly onclick="openDD('ddA')">
+          <span class="dd-arrow">▼</span>
+          <div class="dropdown" id="ddA">
+            <div class="dd-search-wrap"><input id="ddA_search" placeholder="ابحث…" oninput="filterDD('ddA')" onclick="event.stopPropagation()"></div>
+            <div class="dd-list" id="ddA_list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>نجم ب</label>
+        <div class="sw">
+          <input class="star-input" id="starB_display" placeholder="اختر أو ابحث…" readonly onclick="openDD('ddB')">
+          <span class="dd-arrow">▼</span>
+          <div class="dropdown" id="ddB">
+            <div class="dd-search-wrap"><input id="ddB_search" placeholder="ابحث…" oninput="filterDD('ddB')" onclick="event.stopPropagation()"></div>
+            <div class="dd-list" id="ddB_list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="fg">
+          <label>المسافة بين أ-ب</label>
+          <input type="number" id="distAB" placeholder="مثال: 6.7" step="0.01" oninput="saveInputs()">
+        </div>
+        <div class="fg">
+          <label>البوصلة أ ← ب (°)</label>
+          <input type="number" id="bearAB" placeholder="مثال: 97" step="0.1" oninput="saveInputs()">
+        </div>
+      </div>
+    </div>
+
+    <div id="mode2" style="display:none">
+      <div class="fg">
+        <label>النجم المعروف</label>
+        <div class="sw">
+          <input class="star-input" id="starM_display" placeholder="اختر أو ابحث…" readonly onclick="openDD('ddM')">
+          <span class="dd-arrow">▼</span>
+          <div class="dropdown" id="ddM">
+            <div class="dd-search-wrap"><input id="ddM_search" placeholder="ابحث…" oninput="filterDD('ddM')" onclick="event.stopPropagation()"></div>
+            <div class="dd-list" id="ddM_list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label>التحجيم</label><input type="number" id="scaleM" placeholder="0.095" step="0.001" oninput="saveInputs()"></div>
+        <div class="fg"><label>الإدارة (°)</label><input type="number" id="rotM" placeholder="51" step="0.1" oninput="saveInputs()"></div>
+      </div>
+    </div>
+
+    <div id="errorMsg" class="err" style="display:none"></div>
+    <button class="btn" onclick="calculate()">✦ احسب النتائج</button>
+
+    <div style="text-align:center; margin-top:12px;">
+      <span class="clear-save" onclick="clearSavedData()">🗑️ مسح البيانات المحفوظة</span>
+    </div>
+  </div>
+
+  <div class="card" id="abSummary" style="display:none">
+    <div class="card-title">📊 ملخص الحساب</div>
+    <div class="sum-grid">
+      <div class="sum-box"><div class="sum-label">التحجيم المحسوب</div><div class="sum-val" id="sumScale">—</div></div>
+      <div class="sum-box"><div class="sum-label">الإدارة المحسوبة</div><div class="sum-val c" id="sumRot">—</div></div>
+      <div class="sum-box"><div class="sum-label">مسافة أ-ب (نجوم)</div><div class="sum-val" id="sumDistStar">—</div></div>
+      <div class="sum-box"><div class="sum-label">بوصلة أ-ب (نجوم)</div><div class="sum-val c" id="sumStarBear">—</div></div>
+    </div>
+  </div>
+
+  <div class="tip">اضغط "احسب" ثم انتقل لـ "النتائج" من الشريط العلوي</div>
+</div>
+
+<!-- ══ PAGE RESULTS ══ -->
+<div class="page" id="page-results">
+  <div class="res-tabs">
+    <div class="res-tab active" onclick="setResTab('center',this)">🎯 المركز</div>
+    <div class="res-tab" onclick="setResTab('A',this)">📍 من أ</div>
+    <div class="res-tab" onclick="setResTab('B',this)">📍 من ب</div>
+  </div>
+  <div class="tbl-container">
+    <div class="sbar"><input type="text" id="searchRes" placeholder="بحث في النجوم…" oninput="filterTable('res')"></div>
+    <div class="count-bar">
+      <span id="countRes">—</span>
+      <span style="font-size:10px;color:var(--border2)">اضغط العنوان للترتيب</span>
+    </div>
+    <div class="res-header">
+      <span onclick="sortTable('res','n')">اسم النجم ↕</span>
+      <span onclick="sortTable('res','dist')" style="text-align:center">المسافة ↕</span>
+      <span onclick="sortTable('res','bear')" style="text-align:center">البوصلة° ↕</span>
+    </div>
+    <div class="res-list" id="tbodyRes">
+      <div class="no-data">أدخل البيانات واضغط "احسب" أولاً</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE ROTATED ══ -->
+<div class="page" id="page-rotated">
+  <div class="card" style="flex-shrink:0">
+    <div class="card-title">🔃 الإعدادات اليدوية</div>
+    <div class="rot-settings">
+      <div class="fg"><label>التحجيم</label><input type="number" id="manScale" value="0.09" step="0.001" oninput="saveInputs()"></div>
+      <div class="fg"><label>الإدارة (°)</label><input type="number" id="manRot" value="51" step="0.1" oninput="saveInputs()"></div>
+      <button class="btn" onclick="calcRotated()">احسب</button>
+    </div>
+  </div>
+  <div class="res-tabs">
+    <div class="res-tab active" onclick="setRotTab('center',this)">🔃 مركز مدار</div>
+    <div class="res-tab" onclick="setRotTab('star',this)">✦ نجم مدار</div>
+  </div>
+  <div class="tbl-container">
+    <div class="sbar"><input type="text" id="searchRot" placeholder="بحث في النجوم…" oninput="filterTable('rot')"></div>
+    <div class="count-bar">
+      <span id="countRot">—</span>
+      <span style="font-size:10px;color:var(--border2)">اضغط العنوان للترتيب</span>
+    </div>
+    <div class="res-header">
+      <span onclick="sortTable('rot','n')">اسم النجم ↕</span>
+      <span onclick="sortTable('rot','dist')" style="text-align:center">المسافة ↕</span>
+      <span onclick="sortTable('rot','bear')" style="text-align:center">البوصلة° ↕</span>
+    </div>
+    <div class="res-list" id="tbodyRot">
+      <div class="no-data">أدخل الإعدادات واضغط "احسب"</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE MAP ══ -->
+<div class="page" id="page-map">
+  <div class="card">
+    <div class="card-title">🗺️ خريطة النجوم</div>
+    <div style="display:flex; gap:8px; margin-bottom:10px">
+      <select id="mapStarSet" class="map-select" onchange="updateMap()">
+        <option value="first20">أول 20 نجم (الصفوف 4–23)</option>
+        <option value="last4">آخر 4 نجوم (الصفوف 251–254)</option>
+        <option value="first20+last4">المجموعتان معاً</option>
+        <option value="all">كل النجوم (قد يكون مزدحماً)</option>
+      </select>
+      <button class="btn" style="width:auto; padding:8px 15px;" onclick="updateMap()">تحديث</button>
+    </div>
+    <canvas id="starMap" width="600" height="400" style="width:100%; height:auto; background:#0a0f1a; border-radius:12px; border:2px solid var(--border2);"></canvas>
+    <div style="font-size:11px; color:var(--text2); margin-top:8px; display:flex; justify-content:space-between">
+      <span>🟡 نجمة عادية</span>
+      <span>🔵 نجمة ثابتة</span>
+      <span>🟠 النجم المرجعي (A أو المعروف)</span>
+    </div>
+    <div style="font-size:10px; color:var(--text2); margin-top:5px; text-align:center;">
+      * يمكنك تحريك الخريطة بالسحب (zoom قادم قريباً)
+    </div>
+  </div>
+</div>
+
+<script>
+// ------------------------------------------------------------
+// جميع النجوم من ملف Excel (254 نجماً) مع أرقام الصفوف (r)
+// ------------------------------------------------------------
+const STARS = [
+  {n:"مركز1", x:0.1, y:0.1, c:false, r:4},
+  {n:"نجم الشمال", x:89.72915039, y:18.06823619, c:false, r:5},
+  {n:"التنين", x:98.48252344, y:-50.72402978, c:false, r:6},
+  {n:"عين الدبه.", x:90.20306384, y:-50.71968986, c:false, r:7},
+  {n:"البعوضه", x:80.99986203, y:-33.47170691, c:false, r:8},
+  {n:"حوض الدب", x:76.36427398, y:-44.41778958, c:false, r:9},
+  {n:"الرئيس الملك", x:64.51380629, y:-60.65510342, c:false, r:10},
+  {n:"مخلب مبسوطه", x:65.48155279, y:-39.99434917, c:false, r:11},
+  {n:"جبهة الاسد", x:49.59010623, y:-62.45619662, c:false, r:12},
+  {n:"راس الاسد", x:52.08882177, y:-57.33307055, c:false, r:13},
+  {n:"زاوية العوا .العراف", x:37.76068532, y:-80.45897993, c:false, r:14},
+  {n:"زرافة a", x:75.6308255, y:-6.745719401, c:false, r:15},
+  {n:"قلب الاسد.ملك.امير", x:41.88977056, y:-64.61289959, c:false, r:16},
+  {n:"حمار سرطان.المعلف", x:46.23977852, y:-51.0404168, c:false, r:17},
+  {n:"مقدمة راس التوأم", x:51.88983042, y:-38.64212404, c:false, r:18},
+  {n:"كلاب سرطان", x:38.19630075, y:-56.79949015, c:false, r:19},
+  {n:"سدسa", x:29.92024578, y:-69.06924623, c:false, r:20},
+  {n:"الصدفه", x:41.52761498, y:-49.26082131, c:false, r:21},
+  {n:"الكأس", x:17.00809114, y:-82.6277465, c:false, r:22},
+  {n:"الوسط .مبسوطه.مقبوضه", x:43.49843346, y:-35.92416362, c:false, r:23},
+  {n:"منخار الشجاع.راس حيه", x:29.40267058, y:-57.69890235, c:false, r:24},
+  {n:"الفرد .قلب حية", x:21.09124066, y:-68.33704752, c:false, r:25},
+  {n:"مفرغة الهواء", x:4.914667689, y:-85.24072945, c:false, r:26},
+  {n:"ممسك اللعنه.عنزه", x:57.88130464, y:-17.17604491, c:false, r:27},
+  {n:"شعرا شامي.عين مغمضه", x:28.68667785, y:-50.76062123, c:false, r:28},
+  {n:"تاج .سنام.قدم.امامي", x:39.72525135, y:-34.19487013, c:false, r:29},
+  {n:"الزر", x:32.40893141, y:-41.04172908, c:false, r:30},
+  {n:"غزالة.عنيز", x:52.74911154, y:-17.58287661, c:false, r:31},
+  {n:"وحيد القرن", x:14.28250264, y:-56.04948551, c:false, r:32},
+  {n:"بوصله", x:-3.465877563, y:-73.79786571, c:false, r:33},
+  {n:"سهيل الوزن. الصاري", x:-12.5519836, y:-79.38908128, c:false, r:34},
+  {n:"درع صغير", x:0.9590049728, y:-63.41085792, c:false, r:35},
+  {n:"ترس القاعده", x:-25.44286366, y:-88.03099872, c:false, r:36},
+  {n:"غزالة.كعب", x:45.53530191, y:-20.43724874, c:false, r:37},
+  {n:"اول سفينه .قدس", x:-34.57571028, y:-92.5695281, c:false, r:38},
+  {n:"يد الجوزاء", x:24.6279211, y:-37.24971481, c:false, r:39},
+  {n:"سيريوس.شعرى يماني", x:6.590362136, y:-52.9295256, c:false, r:40},
+  {n:"وزن", x:-2.281283117, y:-59.63946303, c:false, r:41},
+  {n:"مؤخرة السفينه.عذراء", x:-3.598217197, y:-61.78632249, c:false, r:42},
+  {n:"فلا.مصر.ظليم", x:-17.78675731, y:-74.12023223, c:false, r:43},
+  {n:"بقعة بيضاء", x:26.79730557, y:-33.47692497, c:false, r:44},
+  {n:"حرباءa", x:-43.1968543, y:-88.3245827, c:false, r:45},
+  {n:"3الميزان الحق", x:17.28234925, y:-37.29691487, c:false, r:46},
+  {n:"السيف", x:8.902141495, y:-43.62532796, c:false, r:47},
+  {n:"مفرد حمامة", x:-8.286727199, y:-54.56725185, c:false, r:48},
+  {n:"مبرقع ابيض واسود", x:-24.5788916, y:-66.84427832, c:false, r:49},
+  {n:"عين الثور،المرتفع", x:31.21024946, y:-22.87497144, c:false, r:50},
+  {n:"كرسي.رجل جبار", x:11.08033666, y:-37.18907719, c:false, r:51},
+  {n:"ارنب", x:0.7114945017, y:-45.20706794, c:false, r:52},
+  {n:"سهيل،الصرفا", x:-27.27281676, y:-65.72531088, c:false, r:53},
+  {n:"وزن١", x:-14.31620147, y:-53.58287522, c:false, r:54},
+  {n:"صولجان", x:2.252527176, y:-37.55898786, c:false, r:55},
+  {n:"جبل،منسا", x:-49.32571275, y:-71.05428851, c:false, r:56},
+  {n:"الثريا،مربع مثلث", x:34.26821069, y:-15.41721627, c:false, r:57},
+  {n:"بيض قيد", x:6.504170881, y:-30.77813406, c:false, r:58},
+  {n:"بركه.الظليمين", x:-13.55354396, y:-42.83002501, c:false, r:59},
+  {n:"ازميل كاليوم", x:-23.93476688, y:-49.04617491, c:false, r:60},
+  {n:"ساعة بندول", x:-25.70446497, y:-46.21219199, c:false, r:61},
+  {n:"الغول", x:47.03854128, y:-4.80920993, c:false, r:62},
+  {n:"ضفدع٣،رنا", x:2.49241238, y:-29.43690727, c:false, r:63},
+  {n:"بير،شبكه معين", x:-44.11782171, y:-54.46408212, c:false, r:64},
+  {n:"ميرام", x:59.72778777, y:3.247246625, c:false, r:65},
+  {n:"بطين", x:27.76508491, y:-13.74762395, c:false, r:66},
+  {n:"منقار،منخار", x:17.58050693, y:-17.57169125, c:false, r:67},
+  {n:"صوص النعام،زبال", x:1.809691453, y:-25.6073231, c:false, r:68},
+  {n:"عش النعام ،ازها", x:0.7121753678, y:-23.84601125, c:false, r:69},
+  {n:"فرن،كور،ظليم", x:-16.71816099, y:-33.72578286, c:false, r:70},
+  {n:"اخر النهر ١", x:-27.17717627, y:-37.83835665, c:false, r:71},
+  {n:"الكف الجذماء", x:11.27343166, y:-17.41288836, c:false, r:72},
+  {n:"التفاف النهر", x:-10.65921678, y:-27.64025029, c:false, r:73},
+  {n:"ميرا،رائع", x:4.343934155, y:-17.08993918, c:false, r:74},
+  {n:"الرشا،العقده", x:9.012410323, y:-13.46638701, c:false, r:75},
+  {n:"راس حيه ماء هيدرا", x:-50.60551153, y:-37.55359097, c:false, r:76},
+  {n:"راس الحمل", x:27.78358202, y:-4.641903896, c:false, r:77},
+  {n:"بطن حوت قيطس،نعام4", x:-3.771436393, y:-16.75474059, c:false, r:78},
+  {n:"اخر النهر ظليم ١", x:-47.64971644, y:-33.59803422, c:false, r:79},
+  {n:"الوشق،رجل المسلسله", x:45.04700969, y:2.865395228, c:false, r:80},
+  {n:"شرطان", x:24.88878204, y:-4.611754447, c:false, r:81},
+  {n:"كتان،مليء", x:13.84921468, y:-8.48967353, c:false, r:82},
+  {n:"مثلث شمالي،ميزان", x:32.81931166, y:-0.9554315195, c:false, r:83},
+  {n:"ذنب حوت جنوبي", x:-5.786167084, y:-11.96699051, c:false, r:84},
+  {n:"نحات", x:-24.15451027, y:-17.89118345, c:false, r:85},
+  {n:"ضفدع٢", x:-14.17643309, y:-12.28063015, c:false, r:86},
+  {n:"عملاء،الزورق", x:-37.40384804, y:-19.7647069, c:false, r:87},
+  {n:"ذنب حوت شمالي", x:-6.803087587, y:-6.777951009, c:false, r:88},
+  {n:"سنام الناقه،سيچان", x:64.0885462, y:12.68699391, c:false, r:89},
+  {n:"خف الناقه", x:48.63909873, y:9.752295839, c:false, r:90},
+  {n:"ذيل العروس مسلسله", x:45.84962724, y:8.941726955, c:false, r:91},
+  {n:"مأزر", x:36.10592659, y:6.692216412, c:false, r:92},
+  {n:"المركز", x:0.0, y:0.0, c:false, r:93},
+  {n:"طوقان", x:-61.45917453, y:-11.42515497, c:false, r:94},
+  {n:"الثمنv", x:-77.74163003, y:-15.65595585, c:false, r:95},
+  {n:"الجنب،جناح الغرس", x:14.60470347, y:4.453979431, c:false, r:96},
+  {n:"ضفدع١،فم الحوت", x:-30.22747565, y:-4.925895017, c:false, r:97},
+  {n:"القطب الجنوبيs", x:-89.89474842, y:-16.60903442, c:false, r:98},
+  {n:"الساق", x:-17.54510907, y:0.1337167019, c:false, r:99},
+  {n:"بطن،النير", x:-48.76351484, y:-5.37093053, c:false, r:100},
+  {n:"الكرسي،ركبة", x:59.41079565, y:14.69845457, c:false, r:101},
+  {n:"مرفق،الجنب", x:54.05298888, y:14.01998158, c:false, r:102},
+  {n:"راس مسلسل،مخلب نسر ،كف خضيب،سرت االفرس", x:27.03014796, y:10.88183278, c:false, r:103},
+  {n:"فم السمكه", x:0.6862904899, y:7.977145562, c:false, r:104},
+  {n:"جره،دلو", x:-7.940530891, y:7.686553278, c:false, r:105},
+  {n:"طاووس١", x:-62.65228369, y:0.3163475034, c:false, r:106},
+  {n:"مقعمزة", x:-12.23415339, y:8.302187879, c:false, r:107},
+  {n:"هندي", x:-53.30790767, y:3.985162346, c:false, r:108},
+  {n:"ركاب", x:11.10524833, y:12.13281817, c:false, r:109},
+  {n:"ذنب الجدي،سعد ناشره", x:-21.56993777, y:9.274109811, c:false, r:110},
+  {n:"مجهر", x:-38.70448658, y:7.775031036, c:false, r:111},
+  {n:"سلم،الخرب،ركاب", x:19.77631783, y:14.11251776, c:false, r:112},
+  {n:"سعد همام", x:5.910177527, y:13.14290277, c:false, r:113},
+  {n:"سعد الملك،ركبه", x:-6.060591076, y:12.30582509, c:false, r:114},
+  {n:"سعد بهام", x:0.1289146748, y:14.30094309, c:false, r:115},
+  {n:"صدر،ظهر الناقه", x:55.42718309, y:17.79145104, c:false, r:116},
+  {n:"سعد سعود", x:-12.53139314, y:15.41828526, c:false, r:117},
+  {n:"عقرب،ركبة", x:-54.70568605, y:13.9455265, c:false, r:118},
+  {n:"طاووس٢", x:-75.99271066, y:13.20216722, c:false, r:119},
+  {n:"سعد البارع ،شاة", x:22.8166604, y:17.81395895, c:false, r:120},
+  {n:"معين الرامي،رباعي", x:-37.07421654, y:16.76855981, c:false, r:121},
+  {n:"انف", x:2.106532128, y:18.97454398, c:false, r:122},
+  {n:"شاة مذبوحه،الجدي", x:-22.79346787, y:18.97454398, c:false, r:123},
+  {n:"القبة.الفكه.تاج جنوبي", x:-49.39346787, y:18.97454398, c:false, r:124},
+  {n:"منظار", x:-57.29346787, y:18.97454398, c:false, r:125},
+  {n:"قطعة الفرس1", x:-3.479333982, y:20.5941273, c:false, r:126},
+  {n:"نعام3+1. صادره،سقاله", x:-42.37340932, y:21.27302591, c:false, r:127},
+  {n:"مثلث a جنوبي", x:-84.97935968, y:21.19218152, c:false, r:128},
+  {n:"سعد مطر", x:23.74649388, y:21.26395096, c:false, r:129},
+  {n:"نعام2،نونكي", x:-39.51494547, y:23.4730891, c:false, r:130},
+  {n:"قوس جنوبي،نعام3 وارده", x:-48.50946292, y:23.78718457, c:false, r:131},
+  {n:"مجمره،مذبح،مهر", x:-65.19928973, y:24.37000617, c:false, r:132},
+  {n:"عين الرامي،البلده", x:-36.31433419, y:25.68557556, c:false, r:133},
+  {n:"راس اسهم،سركس", x:-58.69036492, y:26.73073269, c:false, r:134},
+  {n:"قوس شمالي،راعي نعام", x:-40.07752519, y:28.02195862, c:false, r:135},
+  {n:"نصل،نعام1 وارده", x:-45.76364028, y:28.41957052, c:false, r:136},
+  {n:"نثرة العقرب", x:-50.2526785, y:28.73347466, c:false, r:137},
+  {n:"لسعة،شولة عقرب", x:-53.94366549, y:28.99157361, c:false, r:138},
+  {n:"مثلثbجنوبي", x:-82.56656716, y:29.58009633, c:false, r:139},
+  {n:"مثلثyجنوبي", x:-89.08777904, y:32.41626049, c:false, r:140},
+  {n:"الثمن2", x:-105.4179705, y:32.59100765, c:false, r:141},
+  {n:"طائر الجنه", x:-100.629663, y:32.25617658, c:false, r:142},
+  {n:"قطعة الفرس2", x:-6.627017298, y:27.36764201, c:false, r:143},
+  {n:"مسطرة النقاش،norma", x:-67.69375229, y:32.71028904, c:false, r:144},
+  {n:"دلفين،قاعود،صليب", x:-0.1172511305, y:28.21559304, c:false, r:145},
+  {n:"عقربE", x:-53.30790767, y:33.96392561, c:false, r:146},
+  {n:"فرجار", x:-83.83972986, y:37.17294943, c:false, r:147},
+  {n:"كف الخضيب1", x:54.44239823, y:23.03682999, c:false, r:148},
+  {n:"اسم معكوس،sualocin", x:4.344581548, y:29.40655977, c:false, r:149},
+  {n:"الشاهين", x:-6.57342612, y:30.74712255, c:false, r:150},
+  {n:"الدرع", x:-24.141493, y:32.90420993, c:false, r:151},
+  {n:"رجل سنتاوري،حافر،ظليمين1", x:-83.89277133, y:40.2407444, c:false, r:152},
+  {n:"النسر الطائر", x:-4.471853981, y:32.15423664, c:false, r:153},
+  {n:"حضار،اچينا", x:-85.3767552, y:43.52467899, c:false, r:154},
+  {n:"حرباءB", x:-108.2519476, y:46.73957762, c:false, r:155},
+  {n:"منكب النسر،تارزاد", x:-3.141096551, y:33.61680991, c:false, r:156},
+  {n:"قلب العقرب", x:-47.06787184, y:40.73763066, c:false, r:157},
+  {n:"الذبابهa", x:-98.05794608, y:48.650162, c:false, r:158},
+  {n:"لية الخروف،ذيل حيه", x:-11.53778178, y:36.75611737, c:false, r:159},
+  {n:"سابق،ذيل الحية حاوي", x:-35.07468708, y:40.90630882, c:false, r:160},
+  {n:"بغل،جحش،بردون", x:-80.37584372, y:48.89412499, c:false, r:161},
+  {n:"جبهة العقرب", x:-45.07822929, y:45.09629545, c:false, r:162},
+  {n:"صليبaجنوبي", x:-92.84580446, y:53.5243092, c:false, r:163},
+  {n:"شام،سهم", x:3.278232884, y:37.01731896, c:false, r:164},
+  {n:"اكليل،تاج،سلطعون العقرب", x:-42.05869065, y:46.89708406, c:false, r:165},
+  {n:"صليب جنوبيs", x:-87.16534612, y:55.43981769, c:false, r:166},
+  {n:"سحليه،سوسمار", x:41.59273387, y:30.55916548, c:false, r:167},
+  {n:"ذنب العقاب", x:-2.089379948, y:40.07495288, c:false, r:168},
+  {n:"سهم،برنارد", x:-14.17156875, y:42.86434595, c:false, r:169},
+  {n:"قرن،زباني،ذراع،برهام", x:-50.22326115, y:51.18753496, c:false, r:170},
+  {n:"كتف،منكنت", x:-63.084946, y:54.15688888, c:false, r:171},
+  {n:"الجناح،فوارس", x:21.19177214, y:35.95746105, c:false, r:172},
+  {n:"كلب الراعي", x:-14.90322887, y:44.95695557, c:false, r:173},
+  {n:"چرافياس،عقرب", x:-34.50320254, y:49.84377786, c:false, r:174},
+  {n:"زباني العقرب", x:-39.2576516, y:51.02919515, c:false, r:175},
+  {n:"ثعلب،نسر", x:8.769834468, y:41.02200029, c:false, r:176},
+  {n:"عنق الحيه", x:-12.98501288, y:46.38348086, c:false, r:177},
+  {n:"يد حاوي،نسق يماني", x:-26.81388074, y:52.27153656, c:false, r:178},
+  {n:"كفة ميزانs,كلاب عقرب،زبان", x:-42.29019405, y:56.70929799, c:false, r:179},
+  {n:"منقار دجاجه،زهرة رباعيه،البيرو", x:11.79843456, y:42.15438029, c:false, r:180},
+  {n:"راس حاوي", x:-8.140922504, y:48.76722069, c:false, r:181},
+  {n:"مرفق حاوي؟", x:-20.85977576, y:52.65576436, c:false, r:182},
+  {n:"كفت ميزانn,كلاب عقرب،زبان", x:-34.8218252, y:56.92439125, c:false, r:183},
+  {n:"حافر فرس،ذيل دجاجه", x:39.66680691, y:36.06687209, c:false, r:184},
+  {n:"صدر دجاجه", x:25.57858013, y:40.91783759, c:false, r:185},
+  {n:"راس الجاثي", x:-7.420018155, y:52.28016618, c:false, r:186},
+  {n:"رجل الحاوي", x:-33.42177898, y:61.23329043, c:false, r:187},
+  {n:"الخيباء،منقار الغراب", x:-59.04533238, y:70.05618741, c:false, r:188},
+  {n:"تطريز،صيرما", x:-35.10877086, y:64.25801096, c:false, r:189},
+  {n:"السماك اعزل،سبيكة", x:-42.72028109, y:67.02837412, c:false, r:190},
+  {n:"ذنب دجاجة،رديف فارس", x:31.33118764, y:41.22919365, c:false, r:191},
+  {n:"راس حية حاوي تخيلي", x:-17.58842671, y:60.0076742, c:false, r:192},
+  {n:"الغراب", x:-49.98366751, y:72.44304205, c:false, r:193},
+  {n:"سلحفاة،قيتاره،شلياق", x:14.71739828, y:48.98489406, c:false, r:194},
+  {n:"معصم", x:4.159833184, y:55.11717336, c:false, r:195},
+  {n:"مرفق عوا؟", x:-8.543133794, y:60.50926294, c:false, r:196},
+  {n:"حذاء", x:-31.72426504, y:71.40693985, c:false, r:197},
+  {n:"ركبه،دجاجه", x:34.75396797, y:42.97824669, c:false, r:198},
+  {n:"كتف الجاثية الايسر", x:2.183586492, y:56.34608855, c:false, r:199},
+  {n:"روما،التفاف العوا", x:-36.54267025, y:78.69445908, c:false, r:200},
+  {n:"الراقص خف1،2 ملتهب،عقيق", x:46.88345314, y:39.66566211, c:false, r:201},
+  {n:"النسر الواقع،مخلب،فيچا", x:19.06729576, y:52.66222236, c:false, r:202},
+  {n:"زاوية العذراء،زن", x:-36.17459928, y:79.693945, c:false, r:203},
+  {n:"الفكه،الكسره،الجوهره", x:-1.041683619, y:69.05537775, c:false, r:204},
+  {n:"السماك الرامح،الرايه", x:-12.16861003, y:74.55588549, c:false, r:205},
+  {n:"مفرد", x:-14.07351726, y:76.27904109, c:false, r:206},
+  {n:"قرده،حزين،بقعه بيضا،قرحه", x:53.27987533, y:39.77454398, c:false, r:207},
+  {n:"قصعة المساكين،تاج،نسقان", x:0.5980228828, y:70.32676289, c:false, r:208},
+  {n:"ظفيره،الهلبه", x:-17.47440016, y:80.62454398, c:false, r:209},
+  {n:"ازار", x:-3.353253078, y:74.65015988, c:false, r:210},
+  {n:"يد يمين،الدرمين", x:49.10905237, y:44.0927171, c:false, r:211},
+  {n:"القدر", x:46.77690466, y:47.66113993, c:false, r:212},
+  {n:"الرمح،راعي مزيف", x:8.226657532, y:73.66360994, c:false, r:213},
+  {n:"تمينT", x:28.577014, y:62.47184996, c:false, r:214},
+  {n:"راعي،نقار،بقار", x:9.052046286, y:77.28284101, c:false, r:215},
+  {n:"كتف عوا ايسر", x:5.65417491, y:79.75153907, c:false, r:216},
+  {n:"راس ثعبان ،ام جمال", x:27.7317343, y:65.37448226, c:false, r:217},
+  {n:"الراية", x:69.88318003, y:33.90717245, c:false, r:218},
+  {n:"چروميوم،ام جمال،فك تنين", x:33.04116452, y:64.53734029, c:false, r:219},
+  {n:"قلب ملك شهيد.كلبي صيد", x:1.184418346, y:91.45421742, c:false, r:220},
+  {n:"الفرق،القطع", x:56.90285218, y:46.16445987, c:false, r:221},
+  {n:"الراقص", x:28.86562557, y:69.69048638, c:false, r:222},
+  {n:"منجل،مراة مسلسله", x:14.38738559, y:81.83917221, c:false, r:223},
+  {n:"فرح،كلب صيد جنوبي", x:2.363988487, y:94.55254412, c:false, r:224},
+  {n:"القائد،الحداد،نعش", x:13.98948536, y:89.96463108, c:false, r:225},
+  {n:"اولاد الضباع", x:17.66028801, y:88.16251768, c:false, r:226},
+  {n:"الذئب،التيس،العقده2", x:47.65794272, y:60.62313339, c:false, r:227},
+  {n:"اثافي", x:50.47512922, y:59.18563882, c:false, r:228},
+  {n:"الظبع،الذيخ", x:27.69033467, y:82.77998427, c:false, r:229},
+  {n:"الذيبه،عقده3", x:38.70225381, y:73.24098864, c:false, r:230},
+  {n:"مأزر،الكور،خافت", x:18.17410317, y:95.25473506, c:false, r:231},
+  {n:"الليه،االليوث", x:17.44190501, y:98.78829824, c:false, r:232},
+  {n:"مخرز", x:16.58101276, y:103.7559619, c:false, r:233},
+  {n:"ثعبان", x:28.45125031, y:94.12455845, c:false, r:234},
+  {n:"الذيبان", x:47.19528722, y:72.87447953, c:false, r:235},
+  {n:"عجل", x:38.93333601, y:88.3073004, c:false, r:236},
+  {n:"كوكب،عجل،ركبه", x:39.48244443, y:92.84179169, c:false, r:237},
+  {n:"يلدن،النجم", x:59.38760967, y:79.48163512, c:false, r:238},
+  {n:"32شرق ابيض", x:0.2914131515, y:18.04234576, c:true, r:239},
+  {n:"32غرب ابيض", x:0.2914933444, y:-13.95311871, c:true, r:240},
+  {n:"32شرق اسود", x:-31.70051894, y:18.12974167, c:true, r:241},
+  {n:"32غرب اسود", x:-31.77339051, y:-13.69532645, c:true, r:242},
+  {n:"256شرق اليض", x:0.3161480285, y:146.0659837, c:true, r:243},
+  {n:"256غرب ابيض", x:0.1175091925, y:-109.8307629, c:true, r:244},
+  {n:"256شرق ابيض", x:-255.7491975, y:145.9303328, c:true, r:245},
+  {n:"256غرب ابيض", x:-255.6792019, y:-110.0103366, c:true, r:246},
+  {n:"2048شرق ابيض", x:0.7328797754, y:1170.091887, c:true, r:247},
+  {n:"2048غرب ابيض", x:-0.2133379081, y:-877.8988929, c:true, r:248},
+  {n:"2048شرق اسود", x:-2047.840929, y:1169.70989, c:true, r:249},
+  {n:"2048غرب اسود", x:-2047.157415, y:-879.1122034, c:true, r:250},
+  {n:"16384شرق ابيض", x:7.770584026, y:9362.068774, c:true, r:251},
+  {n:"16384غرب ابيض", x:3.280398577, y:-7022.009946, c:true, r:252},
+  {n:"16384شرق اسود", x:-16381.88372, y:9375.912899, c:true, r:253},
+  {n:"16384غرب اسود", x:-16376.45159, y:-7038.258401, c:true, r:254}
+];
+
+let mode=1, selA=null, selB=null, selM=null;
+let results={center:[],A:[],B:[],rotCenter:[],rotStar:[]};
+let sortState={}, resTab='center', rotTab='center', computed=false;
+
+// متغيرات الخريطة
+let mapOffsetX = 0, mapOffsetY = 0, mapScale = 1.0;
+let isDragging = false, lastX, lastY;
+
+document.addEventListener('DOMContentLoaded',()=>{
+  buildDD('ddA'); buildDD('ddB'); buildDD('ddM');
+  document.addEventListener('click', closeAllDD);
+  loadInputs();
+  setupMapEvents();
+});
+
+function buildDD(id){
+  const list=document.getElementById(id+'_list');
+  list.innerHTML=STARS.map((s,i)=>
+    `<div class="dd-item" onclick="selectStar('${id}',${i})">
+      <span>${s.n}</span>${s.c?'<span class="dd-tag">ثابتة</span>':''}
+    </div>`).join('');
+}
+function openDD(id){closeAllDD();document.getElementById(id).classList.add('open');setTimeout(()=>document.getElementById(id+'_search').focus(),50);event.stopPropagation()}
+function closeAllDD(){document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'))}
+function filterDD(id){
+  const q=document.getElementById(id+'_search').value.trim().toLowerCase();
+  document.querySelectorAll('#'+id+'_list .dd-item').forEach(el=>el.style.display=el.textContent.toLowerCase().includes(q)?'':'none');
+}
+function selectStar(ddId,idx){
+  const s=STARS[idx];
+  if(ddId==='ddA'){selA=s;document.getElementById('starA_display').value=s.n}
+  if(ddId==='ddB'){selB=s;document.getElementById('starB_display').value=s.n}
+  if(ddId==='ddM'){selM=s;document.getElementById('starM_display').value=s.n}
+  closeAllDD();
+  saveInputs();
+}
+
+// حفظ و تحميل المدخلات
+function saveInputs(){
+  const data={
+    mode: mode,
+    starA: selA? selA.n : '',
+    starB: selB? selB.n : '',
+    starM: selM? selM.n : '',
+    distAB: document.getElementById('distAB').value,
+    bearAB: document.getElementById('bearAB').value,
+    scaleM: document.getElementById('scaleM').value,
+    rotM: document.getElementById('rotM').value,
+    manScale: document.getElementById('manScale').value,
+    manRot: document.getElementById('manRot').value
+  };
+  localStorage.setItem('starNav', JSON.stringify(data));
+}
+function loadInputs(){
+  const saved = localStorage.getItem('starNav');
+  if(!saved) return;
+  try{
+    const data = JSON.parse(saved);
+    if(data.mode!==undefined){
+      mode = data.mode;
+      document.querySelectorAll('.mode-tab').forEach((el,i)=>{
+        if((mode===1 && i===0) || (mode===2 && i===1)) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+      document.getElementById('mode1').style.display = mode===1?'':'none';
+      document.getElementById('mode2').style.display = mode===2?'':'none';
+    }
+    if(data.starA){
+      const s = STARS.find(st=>st.n===data.starA);
+      if(s){selA=s; document.getElementById('starA_display').value=s.n;}
+    }
+    if(data.starB){
+      const s = STARS.find(st=>st.n===data.starB);
+      if(s){selB=s; document.getElementById('starB_display').value=s.n;}
+    }
+    if(data.starM){
+      const s = STARS.find(st=>st.n===data.starM);
+      if(s){selM=s; document.getElementById('starM_display').value=s.n;}
+    }
+    if(data.distAB) document.getElementById('distAB').value = data.distAB;
+    if(data.bearAB) document.getElementById('bearAB').value = data.bearAB;
+    if(data.scaleM) document.getElementById('scaleM').value = data.scaleM;
+    if(data.rotM) document.getElementById('rotM').value = data.rotM;
+    if(data.manScale) document.getElementById('manScale').value = data.manScale;
+    if(data.manRot) document.getElementById('manRot').value = data.manRot;
+  }catch(e){}
+}
+function clearSavedData(){
+  localStorage.removeItem('starNav');
+  location.reload();
+}
+
+// دوال رياضية
+function dist(ax,ay,bx,by){return Math.sqrt((bx-ax)**2+(by-ay)**2)}
+function bearing(ax,ay,bx,by){
+  let dx = bx - ax;
+  let dy = by - ay;
+  let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+  return (90 - angle + 360) % 360;
+}
+function transform(sx,sy,scale,rotDeg){
+  const r = rotDeg * Math.PI/180;
+  const tx = sx * scale;
+  const ty = sy * scale;
+  return {
+    x: tx * Math.cos(r) - ty * Math.sin(r),
+    y: tx * Math.sin(r) + ty * Math.cos(r)
+  };
+}
+function calcSR(sA,sB,realDist,realBear){
+  const d = dist(sA.x, sA.y, sB.x, sB.y);
+  if(d===0) return null;
+  const sb = bearing(sA.x, sA.y, sB.x, sB.y);
+  return {
+    scale: realDist / d,
+    rot: (realBear - sb + 360) % 360,
+    starDist: d,
+    starBear: sb
+  };
+}
+
+// الحساب الرئيسي
+function calculate(){
+  hideErr();
+  let scale, rot;
+  if(mode===1){
+    if(!selA||!selB) return showErr('اختر نجمتين أولاً');
+    const d = parseFloat(document.getElementById('distAB').value);
+    const b = parseFloat(document.getElementById('bearAB').value);
+    if(isNaN(d)||isNaN(b)) return showErr('أدخل المسافة والبوصلة');
+    const sr = calcSR(selA,selB,d,b);
+    if(!sr) return showErr('النجمان متطابقان');
+    scale = sr.scale; rot = sr.rot;
+    document.getElementById('sumScale').textContent = scale.toFixed(6);
+    document.getElementById('sumRot').textContent = rot.toFixed(2)+'°';
+    document.getElementById('sumDistStar').textContent = sr.starDist.toFixed(4);
+    document.getElementById('sumStarBear').textContent = sr.starBear.toFixed(2)+'°';
+    document.getElementById('abSummary').style.display = 'block';
+    const tA = transform(selA.x, selA.y, scale, rot);
+    const tB = transform(selB.x, selB.y, scale, rot);
+    results.center = STARS.map(s=>{
+      const t = transform(s.x, s.y, scale, rot);
+      return {n:s.n, c:s.c, r:s.r, dist: dist(0,0,t.x,t.y), bear: bearing(0,0,t.x,t.y)};
+    });
+    results.A = STARS.map(s=>{
+      const t = transform(s.x, s.y, scale, rot);
+      return {n:s.n, c:s.c, r:s.r, dist: dist(tA.x, tA.y, t.x, t.y), bear: bearing(tA.x, tA.y, t.x, t.y)};
+    });
+    results.B = STARS.map(s=>{
+      const t = transform(s.x, s.y, scale, rot);
+      return {n:s.n, c:s.c, r:s.r, dist: dist(tB.x, tB.y, t.x, t.y), bear: bearing(tB.x, tB.y, t.x, t.y)};
+    });
+  } else {
+    if(!selM) return showErr('اختر نجماً معروفاً');
+    scale = parseFloat(document.getElementById('scaleM').value);
+    rot = parseFloat(document.getElementById('rotM').value);
+    if(isNaN(scale)||isNaN(rot)) return showErr('أدخل التحجيم والإدارة');
+    results.center = STARS.map(s=>{
+      const t = transform(s.x, s.y, scale, rot);
+      return {n:s.n, c:s.c, r:s.r, dist: dist(0,0,t.x,t.y), bear: bearing(0,0,t.x,t.y)};
+    });
+    const tM = transform(selM.x, selM.y, scale, rot);
+    results.A = STARS.map(s=>{
+      const t = transform(s.x, s.y, scale, rot);
+      return {n:s.n, c:s.c, r:s.r, dist: dist(tM.x, tM.y, t.x, t.y), bear: bearing(tM.x, tM.y, t.x, t.y)};
+    });
+    results.B = results.A;
+    document.getElementById('abSummary').style.display = 'none';
+  }
+  computed = true;
+  calcRotated();
+  showPage('results');
+  setResTab('center', document.querySelector('#page-results .res-tab'));
+  saveInputs();
+}
+
+function calcRotated(){
+  const scale = parseFloat(document.getElementById('manScale').value);
+  const rot = parseFloat(document.getElementById('manRot').value);
+  if(isNaN(scale)||isNaN(rot)) return;
+  results.rotCenter = STARS.map(s=>{
+    const t = transform(s.x, s.y, scale, rot);
+    return {n:s.n, c:s.c, r:s.r, dist: dist(0,0,t.x,t.y), bear: bearing(0,0,t.x,t.y)};
+  });
+  const ref = selM || selA || STARS[0];
+  const tRef = transform(ref.x, ref.y, scale, rot);
+  results.rotStar = STARS.map(s=>{
+    const t = transform(s.x, s.y, scale, rot);
+    return {n:s.n, c:s.c, r:s.r, dist: dist(tRef.x, tRef.y, t.x, t.y), bear: bearing(tRef.x, tRef.y, t.x, t.y)};
+  });
+  renderList('rot', rotTab==='center'?results.rotCenter:results.rotStar);
+  updateMap(); // تحديث الخريطة عند تغير الحساب
+  saveInputs();
+}
+
+// عرض النتائج
+function getResData(){
+  if(resTab==='center') return results.center;
+  if(resTab==='A') return results.A;
+  return results.B;
+}
+function renderList(key, data){
+  const sid = key==='res'?'searchRes':'searchRot';
+  const q = (document.getElementById(sid)||{value:''}).value.trim().toLowerCase();
+  const filtered = data.filter(r=>r.n.toLowerCase().includes(q));
+  const cnt = document.getElementById('count'+(key==='res'?'Res':'Rot'));
+  if(cnt) cnt.textContent = filtered.length+' نجم';
+  const body = document.getElementById('tbody'+(key==='res'?'Res':'Rot'));
+  if(!filtered.length){body.innerHTML='<div class="no-data">لا توجد نتائج</div>';return}
+  body.innerHTML = filtered.map(r=>`
+    <div class="res-row${r.c?' corner':''}">
+      <div class="rname${r.c?' corner':''}">${r.c?'<span class="rtag">◈</span>':''}${r.n}</div>
+      <div class="rdist">${r.dist.toFixed(3)}</div>
+      <div class="rbear">${r.bear.toFixed(1)}°</div>
+    </div>`).join('');
+}
+function filterTable(key){
+  renderList(key, key==='res'?getResData():(rotTab==='center'?results.rotCenter:results.rotStar));
+}
+function sortTable(key,field){
+  const sk = key+'_'+field;
+  sortState[sk] = sortState[sk]==='asc'?'desc':'asc';
+  const asc = sortState[sk]==='asc';
+  const data = key==='res'?getResData():(rotTab==='center'?results.rotCenter:results.rotStar);
+  data.sort((a,b)=>{
+    if(field==='n') return asc? a.n.localeCompare(b.n) : b.n.localeCompare(a.n);
+    else return asc? a[field]-b[field] : b[field]-a[field];
+  });
+  renderList(key, data);
+}
+
+// واجهة المستخدم
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  ['input','results','rotated','map'].forEach((p,i)=>{if(p===id)document.querySelectorAll('.nav-btn')[i].classList.add('active')});
+  if(id==='map') updateMap();
+}
+function setMode(m,el){
+  mode=m;
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mode1').style.display = m===1?'':'none';
+  document.getElementById('mode2').style.display = m===2?'':'none';
+  saveInputs();
+}
+function setResTab(tab,el){
+  resTab=tab;
+  document.querySelectorAll('#page-results .res-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(computed) renderList('res',getResData());
+}
+function setRotTab(tab,el){
+  rotTab=tab;
+  document.querySelectorAll('#page-rotated .res-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderList('rot', tab==='center'?results.rotCenter:results.rotStar);
+}
+function showErr(msg){const e=document.getElementById('errorMsg');e.textContent=msg;e.style.display='block'}
+function hideErr(){document.getElementById('errorMsg').style.display='none'}
+
+// -------------------- الخريطة التفاعلية --------------------
+function setupMapEvents(){
+  const canvas = document.getElementById('starMap');
+  canvas.addEventListener('mousedown', startDrag);
+  canvas.addEventListener('mousemove', drag);
+  canvas.addEventListener('mouseup', endDrag);
+  canvas.addEventListener('mouseleave', endDrag);
+  canvas.addEventListener('wheel', zoom, {passive:false});
+  // للمس (هاتف)
+  canvas.addEventListener('touchstart', startDragTouch);
+  canvas.addEventListener('touchmove', dragTouch);
+  canvas.addEventListener('touchend', endDrag);
+}
+
+function startDrag(e){
+  isDragging = true;
+  lastX = e.offsetX;
+  lastY = e.offsetY;
+  e.preventDefault();
+}
+function startDragTouch(e){
+  e.preventDefault();
+  const rect = e.target.getBoundingClientRect();
+  const touch = e.touches[0];
+  lastX = touch.clientX - rect.left;
+  lastY = touch.clientY - rect.top;
+  isDragging = true;
+}
+function drag(e){
+  if(!isDragging) return;
+  e.preventDefault();
+  const x = e.offsetX, y = e.offsetY;
+  mapOffsetX += (x - lastX) / mapScale;
+  mapOffsetY += (y - lastY) / mapScale;
+  lastX = x; lastY = y;
+  updateMap();
+}
+function dragTouch(e){
+  if(!isDragging) return;
+  e.preventDefault();
+  const rect = e.target.getBoundingClientRect();
+  const touch = e.touches[0];
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+  mapOffsetX += (x - lastX) / mapScale;
+  mapOffsetY += (y - lastY) / mapScale;
+  lastX = x; lastY = y;
+  updateMap();
+}
+function endDrag(){
+  isDragging = false;
+}
+function zoom(e){
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  const newScale = mapScale * delta;
+  if(newScale < 0.2 || newScale > 10) return;
+  // تكبير حول مؤشر الفأرة
+  const rect = e.target.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const worldX = (mouseX / mapScale) - mapOffsetX;
+  const worldY = (mouseY / mapScale) - mapOffsetY;
+  mapScale = newScale;
+  mapOffsetX = (mouseX / mapScale) - worldX;
+  mapOffsetY = (mouseY / mapScale) - worldY;
+  updateMap();
+}
+
+function updateMap(){
+  const canvas = document.getElementById('starMap');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  
+  // تحديد النجوم المراد رسمها
+  const set = document.getElementById('mapStarSet').value;
+  let starsToDraw = [];
+  if(set==='first20'){
+    starsToDraw = STARS.filter(s => s.r >= 4 && s.r <= 23);
+  } else if(set==='last4'){
+    starsToDraw = STARS.filter(s => s.r >= 251 && s.r <= 254);
+  } else if(set==='first20+last4'){
+    starsToDraw = STARS.filter(s => (s.r >= 4 && s.r <= 23) || (s.r >= 251 && s.r <= 254));
+  } else {
+    starsToDraw = STARS;
+  }
+  
+  // إحداثيات محولة (حسب آخر حساب)
+  const scale = computed ? (mode===1? parseFloat(document.getElementById('sumScale').textContent) || 1 : parseFloat(document.getElementById('scaleM').value) || 1) : 1;
+  const rot = computed ? (mode===1? parseFloat(document.getElementById('sumRot').textContent) || 0 : parseFloat(document.getElementById('rotM').value) || 0) : 0;
+  
+  // نقطة المركز (المرجع)
+  const refStar = selM || selA || STARS[0];
+  const refTrans = transform(refStar.x, refStar.y, scale, rot);
+  
+  // رسم كل نجم
+  ctx.font = '10px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  starsToDraw.forEach(s => {
+    const t = transform(s.x, s.y, scale, rot);
+    const screenX = w/2 + (t.x - refTrans.x) * mapScale * 10 + mapOffsetX * mapScale; // 10 pixels per unit
+    const screenY = h/2 - (t.y - refTrans.y) * mapScale * 10 + mapOffsetY * mapScale; // معكوس Y
+    if(screenX<0 || screenX>w || screenY<0 || screenY>h) return;
+    
+    // لون وحجم
+    let color = s.c ? '#3ecfb8' : '#f5c842';
+    let radius = s.c ? 3 : 4;
+    if(s === refStar) { color = '#ff9900'; radius = 6; }
+    
+    ctx.beginPath();
+    ctx.arc(screenX, screenY, radius, 0, 2*Math.PI);
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // اسم النجم
+    ctx.fillStyle = '#e8dfc8';
+    ctx.font = '9px Arial';
+    ctx.fillText(s.n, screenX, screenY - 10);
+  });
+}
+</script>
+</body>
+</html>
