@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>مستكشف النجوم الاحترافي</title>
+    <!-- إعدادات PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b1320">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #0b1320;
+            color: #eee;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h2 {
+            text-align: center;
+            color: #ffd966;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .control-panel {
+            background: #16223a;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        .control-panel label {
+            color: #aaccff;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .control-panel select, .control-panel input, .control-panel button {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            background: #1e2b45;
+            color: white;
+            font-size: 16px;
+            border: 1px solid #3a4a6a;
+        }
+        .control-panel button {
+            background: #2a4a7a;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .control-panel button:hover {
+            background: #3a5a9a;
+        }
+        .search-box {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 30px;
+            border: none;
+            background: #1e2b45;
+            color: white;
+            border: 1px solid #3a4a6a;
+            font-size: 16px;
+            padding-right: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            background: #0f1a2b;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+        th, td {
+            border: 1px solid #2a3a55;
+            padding: 12px 8px;
+            text-align: center;
+        }
+        th {
+            background: #1a2a40;
+            color: #ffd966;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background 0.2s;
+        }
+        th:hover {
+            background: #2a3a60;
+        }
+        th::after {
+            content: '⇅';
+            margin-right: 8px;
+            opacity: 0.5;
+            font-size: 12px;
+        }
+        th.asc::after {
+            content: '↑';
+            opacity: 1;
+        }
+        th.desc::after {
+            content: '↓';
+            opacity: 1;
+        }
+        tr:hover {
+            background: #1f2e48;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            background: #0a0f1a;
+            border-radius: 16px;
+            border: 2px solid #2a3a55;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+            display: block;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #7a8aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>✨ مستكشف النجوم الاحترافي ✨</h2>
+
+        <!-- لوحة التحكم -->
+        <div class="control-panel">
+            <div>
+                <label>⭐ النجم A</label>
+                <select id="starA"></select>
+            </div>
+            <div>
+                <label>⭐ النجم B</label>
+                <select id="starB"></select>
+            </div>
+            <div>
+                <label>📏 المسافة</label>
+                <input type="number" id="dist" placeholder="سنة ضوئية">
+            </div>
+            <div>
+                <label>🧭 البوصلة</label>
+                <input type="number" id="bear" placeholder="درجة">
+            </div>
+            <button onclick="calculate()">🔍 احسب ورسم</button>
+        </div>
+
+        <!-- بحث سريع -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔎 ابحث عن نجم..." oninput="filterStars()">
+        </div>
+
+        <!-- جدول النجوم -->
+        <table id="starTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)" id="th0">النجم</th>
+                    <th onclick="sortTable(1)" id="th1">المسافة من A</th>
+                    <th onclick="sortTable(2)" id="th2">البوصلة من A</th>
+                </tr>
+            </thead>
+            <tbody id="results"></tbody>
+        </table>
+
+        <!-- لوحة رسم النجوم (Canvas) -->
+        <canvas id="skyCanvas" width="600" height="400"></canvas>
+
+        <div class="footer">
+            ⭐ يمكنك تثبيت هذا التطبيق على هاتفك: من القائمة اختر "تثبيت التطبيق" أو "إضافة للشاشة الرئيسية"
+        </div>
+    </div>
+
+    <script>
+        // ---------- بيانات النجوم (مصدر موثوق) ----------
+        const STARS = [
+            { name: "المركز", x: 0, y: 0 },
+            { name: "نجم الشمال", x: 89.7, y: 18.0 },
+            { name: "التنين", x: 98.4, y: -50.7 },
+            { name: "عين الدب", x: 90.2, y: -50.7 },
+            { name: "سيريوس", x: 6.59, y: -52.92 },
+            { name: "الثريا", x: 34.2, y: -15.4 },
+            { name: "الغول", x: 47.0, y: -4.8 }
+        ];
+
+        // عناصر الصفحة
+        const starASelect = document.getElementById('starA');
+        const starBSelect = document.getElementById('starB');
+        const distInput = document.getElementById('dist');
+        const bearInput = document.getElementById('bear');
+        const resultsBody = document.getElementById('results');
+        const canvas = document.getElementById('skyCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // متغيرات الترتيب
+        let currentSortColumn = 0;      // 0 = الاسم, 1 = المسافة, 2 = البوصلة
+        let currentSortDirection = 'asc'; // 'asc' أو 'desc'
+
+        // ---------- دوال التحميل والحفظ (localStorage) ----------
+        function loadStars() {
+            STARS.forEach((star, index) => {
+                const optionA = new Option(star.name, index);
+                const optionB = new Option(star.name, index);
+                starASelect.add(optionA);
+                starBSelect.add(optionB);
+            });
+        }
+
+        function saveInputs() {
+            localStorage.setItem('starA', starASelect.value);
+            localStorage.setItem('starB', starBSelect.value);
+            localStorage.setItem('dist', distInput.value);
+            localStorage.setItem('bear', bearInput.value);
+        }
+
+        function loadInputs() {
+            if (localStorage.starA) starASelect.value = localStorage.starA;
+            if (localStorage.starB) starBSelect.value = localStorage.starB;
+            if (localStorage.dist) distInput.value = localStorage.dist;
+            if (localStorage.bear) bearInput.value = localStorage.bear;
+        }
+
+        // ---------- دوال حساب المسافة والاتجاه ----------
+        function distance(x1, y1, x2, y2) {
+            return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        }
+
+        function bearing(x1, y1, x2, y2) {
+            let angle = Math.atan2(y2 - y1, x2 - x1);
+            angle = angle * 180 / Math.PI;
+            if (angle < 0) angle += 360;
+            return angle;
+        }
+
+        // ---------- رسم النجوم على Canvas ----------
+        function drawStarsOnCanvas(highlightAIndex = null, highlightBIndex = null) {
+            if (!canvas) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // إعدادات الرسم
+            const scale = 3.5; // تكبير مناسب للوحة 600x400
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // رسم شبكة إرشادية (خفيفة)
+            ctx.strokeStyle = "#2a3a55";
+            ctx.lineWidth = 0.3;
+            for (let i = -150; i <= 150; i += 30) {
+                ctx.beginPath();
+                ctx.moveTo(centerX + i * scale, 0);
+                ctx.lineTo(centerX + i * scale, canvas.height);
+                ctx.strokeStyle = "#2a3a55";
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, centerY - i * scale);
+                ctx.lineTo(canvas.width, centerY - i * scale);
+                ctx.stroke();
+            }
+
+            // رسم النجوم
+            STARS.forEach((star, index) => {
+                let x = centerX + star.x * scale;
+                let y = centerY - star.y * scale;  // لأن Y يزداد للأعلى في الرياضيات
+
+                // التحقق من أن النجم ضمن حدود اللوحة (لتحسين الأداء)
+                if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) return;
+
+                // تمييز النجم المختار
+                const isHighlight = (highlightAIndex !== null && index === highlightAIndex) ||
+                                    (highlightBIndex !== null && index === highlightBIndex);
+
+                // رسم النجم
+                ctx.beginPath();
+                ctx.arc(x, y, isHighlight ? 7 : 4, 0, 2 * Math.PI);
+                ctx.fillStyle = isHighlight ? '#ffaa33' : 'white';
+                ctx.shadowColor = isHighlight ? '#ffaa33' : '#aaccff';
+                ctx.shadowBlur = isHighlight ? 15 : 8;
+                ctx.fill();
+                ctx.shadowBlur = 0; // إعادة تعيين الظل للنص
+
+                // كتابة الاسم
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#ddd';
+                ctx.shadowColor = '#000';
+                ctx.shadowBlur = 4;
+                ctx.fillText(star.name, x + 10, y - 10);
+                ctx.shadowBlur = 0;
+            });
+
+            // إضافة علامتي A و B إذا كانا موجودين
+            if (highlightAIndex !== null) {
+                let starA = STARS[highlightAIndex];
+                let xA = centerX + starA.x * scale;
+                let yA = centerY - starA.y * scale;
+                ctx.font = 'bold 16px Arial';
+                ctx.fillStyle = '#ffaa33';
+                ctx.fillText('A', xA + 15, yA - 20);
+            }
+            if (highlightBIndex !== null) {
+                let starB = STARS[highlightBIndex];
+                let xB = centerX + starB.x * scale;
+                let yB = centerY - starB.y * scale;
+                ctx.font = 'bold 16px Arial';
+                ctx.fillStyle = '#ffaa33';
+                ctx.fillText('B', xB + 15, yB - 20);
+            }
+        }
+
+        // ---------- تحديث الجدول بناءً على النجم A المختار والبحث والترتيب ----------
+        function updateTable() {
+            const Aindex = parseInt(starASelect.value, 10);
+            if (isNaN(Aindex)) return;
+
+            const starA = STARS[Aindex];
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            // تصفية النجوم حسب البحث
+            let filteredStars = STARS.filter(star => star.name.includes(searchTerm));
+
+            // إنشاء مصفوفة تحتوي على البيانات المعروضة (مع الحسابات)
+            let rowsData = filteredStars.map(star => {
+                const dist = distance(starA.x, starA.y, star.x, star.y).toFixed(2);
+                const bear = bearing(starA.x, starA.y, star.x, star.y).toFixed(1);
+                return {
+                    name: star.name,
+                    distance: parseFloat(dist),
+                    bearing: parseFloat(bear),
+                    original: star
+                };
+            });
+
+            // تطبيق الترتيب
+            rowsData.sort((a, b) => {
+                let valA, valB;
+                if (currentSortColumn === 0) { // الاسم
+                    valA = a.name;
+                    valB = b.name;
+                    return currentSortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (currentSortColumn === 1) { // المسافة
+                    valA = a.distance;
+                    valB = b.distance;
+                } else { // البوصلة
+                    valA = a.bearing;
+                    valB = b.bearing;
+                }
+                if (currentSortDirection === 'asc') return valA - valB;
+                else return valB - valA;
+            });
+
+            // عرض النتائج
+            resultsBody.innerHTML = '';
+            rowsData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${row.name}</td><td>${row.distance}</td><td>${row.bearing}</td>`;
+                resultsBody.appendChild(tr);
+            });
+
+            // تحديث رؤوس الأعمدة (إظهار اتجاه الترتيب)
+            document.querySelectorAll('th').forEach(th => th.classList.remove('asc', 'desc'));
+            const activeTh = document.getElementById(`th${currentSortColumn}`);
+            if (activeTh) activeTh.classList.add(currentSortDirection);
+        }
+
+        // ---------- دالة الحساب الرئيسية (تستدعي الرسم والتحديث) ----------
+        function calculate() {
+            saveInputs();
+
+            const Aindex = parseInt(starASelect.value, 10);
+            const Bindex = parseInt(starBSelect.value, 10);
+
+            if (isNaN(Aindex)) {
+                alert('الرجاء اختيار النجم A');
+                return;
+            }
+
+            // تحديث الجدول
+            updateTable();
+
+            // رسم النجوم مع تمييز A و B
+            drawStarsOnCanvas(Aindex, Bindex);
+        }
+
+        // ---------- دالة البحث (فلترة) ----------
+        function filterStars() {
+            updateTable();  // updateTable تقوم بالفلترة بناءً على searchTerm
+        }
+
+        // ---------- دالة الترتيب مع التبديل بين التصاعدي والتنازلي ----------
+        function sortTable(columnIndex) {
+            if (currentSortColumn === columnIndex) {
+                // تبديل الاتجاه
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = columnIndex;
+                currentSortDirection = 'asc';
+            }
+            updateTable();
+        }
+
+        // ---------- تهيئة الصفحة ----------
+        loadStars();
+        loadInputs();
+
+        // تحديث أولي عند التحميل (اختياري)
+        if (starASelect.value) {
+            calculate();
+        } else {
+            // إذا لم يكن هناك قيمة مخزنة، حدد أول نجم كقيمة افتراضية
+            starASelect.value = 0;
+            starBSelect.value = 1; // مثال
+            calculate();
+        }
+
+        // تحديث الرسم عند تغيير التحديد (بدون حفظ)
+        starASelect.addEventListener('change', calculate);
+        starBSelect.addEventListener('change', calculate);
+
+        // ---------- تحويل التطبيق إلى PWA (تسجيل Service Worker) ----------
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js').then(reg => {
+                    console.log('Service Worker registered:', reg);
+                }).catch(err => {
+                    console.log('Service Worker registration failed:', err);
+                });
+            });
+        }
+    </script>
+
+    <!-- ملف manifest للتطبيق (يجب إنشاؤه في نفس المسار) -->
+    <!-- محتوى manifest.json:
+    {
+        "name": "مستكشف النجوم الاحترافي",
+        "short_name": "نجومي",
+        "description": "تطبيق لحساب المسافات والاتجاهات بين النجوم مع خريطة تفاعلية",
+        "start_url": "index.html",
+        "display": "standalone",
+        "theme_color": "#0b1320",
+        "background_color": "#0b1320",
+        "icons": [
+            {
+                "src": "icon-192.png",
+                "sizes": "192x192",
+                "type": "image/png"
+            },
+            {
+                "src": "icon-512.png",
+                "sizes": "512x512",
+                "type": "image/png"
+            }
+        ]
+    }
+    -->
+    <!-- يمكنك إنشاء أيقونات بسيطة عبر مواقع مثل https://favicon.io/ -->
+</body>
+</html>
