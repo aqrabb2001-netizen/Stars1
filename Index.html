@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مستكشف النجوم ✦</title>
+    <style>
+        :root { --navy:#0d1b2a; --gold:#c29b40; --light:#f4f7f9; --fixed:#fff8e1; }
+        *{ box-sizing:border-box; }
+        body { font-family:'Segoe UI',sans-serif; background:var(--light); margin:0; padding-bottom:80px; }
+        .header { background:var(--navy); color:var(--gold); padding:12px; text-align:center; position:sticky; top:0; z-index:100; }
+        .header h3 { margin:0; font-size:14px; }
+        .panel { background:#fff; margin:10px; padding:14px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); border:1px solid #e0e0e0; }
+        .sec-title { font-size:11px; font-weight:bold; color:#fff; background:var(--navy); padding:3px 10px; border-radius:4px; display:inline-block; margin-bottom:8px; }
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+        label { display:block; font-size:11px; font-weight:bold; color:#555; margin-bottom:3px; }
+        input[type=text], input[type=number] { width:100%; padding:9px; border:1px solid #ccc; border-radius:8px; font-size:14px; outline:none; background:#fafafa; }
+        input:focus { border-color:var(--gold); }
+        .computed { background:#e3f2fd; border-radius:8px; padding:10px; margin-bottom:10px; }
+        .computed .grid3 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .computed .full { margin-top:8px; }
+        .cval { text-align:center; }
+        .cval span { display:block; font-size:10px; color:#555; }
+        .cval b { display:block; font-size:15px; color:#0d47a1; margin-top:2px; }
+        .miyl-row { display:flex; align-items:center; gap:10px; background:#fff3e0; border-radius:8px; padding:8px 12px; }
+        .miyl-row label { margin:0; white-space:nowrap; font-size:12px; color:#e65100; }
+        .miyl-row input { flex:1; max-width:100px; padding:7px; border:1px solid #ffb74d; border-radius:6px; font-size:14px; }
+        .search-wrap { padding:8px 10px; }
+        .search-wrap input { width:100%; padding:10px 14px; border-radius:20px; border:1px solid #ddd; font-size:14px; }
+        .count { font-size:11px; color:#888; padding:2px 14px 6px; }
+        .tbl-wrap { overflow-x:auto; background:#fff; }
+        table { width:100%; border-collapse:collapse; }
+        th { background:var(--navy); color:var(--gold); padding:10px 6px; font-size:11px; cursor:pointer; white-space:nowrap; }
+        th:hover { background:#1a3a5c; }
+        th:first-child, td:first-child { position:sticky; right:0; background:#fff; z-index:5; min-width:36px; }
+        th:first-child { background:var(--navy); z-index:6; }
+        td { padding:9px 6px; border-bottom:1px solid #eee; text-align:center; font-size:13px; }
+        tr:hover td { background:#faf5e8; }
+        tr:hover td:first-child { background:#faf5e8; }
+        .fixed-row td { background:var(--fixed) !important; font-weight:bold; color:#b45309; }
+        .fixed-row td:first-child { background:var(--fixed) !important; }
+        .nav { position:fixed; bottom:0; width:100%; background:var(--navy); display:flex; height:68px; z-index:100; border-top:3px solid var(--gold); }
+        .tab { flex:1; color:#fff; border:none; background:none; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:9px; opacity:.5; cursor:pointer; }
+        .tab.active { opacity:1; background:rgba(255,255,255,.1); font-weight:bold; }
+        .tab span { font-size:19px; margin-bottom:2px; }
+        .err { color:red; font-size:11px; margin-top:6px; min-height:16px; }
+    </style>
+</head>
+<body>
+<div class="header"><h3>✦ نظام الملاحة — 251 نجماً ونقطة</h3></div>
+<div class="panel">
+    <div class="sec-title">الوضع 1: نجمان معروفان</div>
+    <div class="grid2">
+        <div><label>نجم أ</label><input type="text" id="starA" list="sl" placeholder="ابحث واختر…" oninput="calc()"></div>
+        <div><label>نجم ب</label><input type="text" id="starB" list="sl" placeholder="ابحث واختر…" oninput="calc()"></div>
+    </div>
+    <div class="grid2">
+        <div><label>المسافة أ←ب</label><input type="number" id="mDist" step="0.0001" placeholder="0.0000" oninput="calc()"></div>
+        <div><label>البوصلة أ←ب (°)</label><input type="number" id="mBrg" step="0.001" placeholder="0.00" oninput="calc()"></div>
+    </div>
+    <div class="computed">
+        <div class="grid3">
+            <div class="cval"><span>التحجيم (S)</span><b id="outS">—</b></div>
+            <div class="cval"><span>الإدارة (M°)</span><b id="outM">—</b></div>
+        </div>
+        <div class="full">
+            <div class="miyl-row">
+                <label>🧭 الميل الإضافي (°)</label>
+                <input type="number" id="vVar" value="0" step="0.1" oninput="render()">
+            </div>
+        </div>
+    </div>
+    <div class="sec-title">الوضع 2: نجم واحد + تحجيم + إدارة</div>
+    <div class="grid2" style="margin-bottom:8px">
+        <div><label>نجم معروف</label><input type="text" id="starM" list="sl" placeholder="اختر…" oninput="calc()"></div>
+        <div></div>
+    </div>
+    <div class="grid2">
+        <div><label>التحجيم (S)</label><input type="number" id="manS" value="0.095401" step="0.000001" oninput="calc()"></div>
+        <div><label>الإدارة (M°)</label><input type="number" id="manM" value="51.024" step="0.001" oninput="calc()"></div>
+    </div>
+    <div id="err" class="err"></div>
+</div>
+<div class="search-wrap">
+    <input type="text" id="srch" placeholder="🔍 ابحث بالاسم أو الـ ID…" oninput="render()">
+</div>
+<div class="count" id="cnt"></div>
+<datalist id="sl"></datalist>
+<div class="tbl-wrap">
+<table>
+    <thead><tr>
+        <th onclick="srt('id')">ID</th>
+        <th onclick="srt('name')">الاسم ↕</th>
+        <th onclick="srt('dist')">المسافة ↕</th>
+        <th onclick="srt('brg')">البوصلة° ↕</th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+</table>
+</div>
+<nav class="nav">
+    <button class="tab active" onclick="mode('center',this)"><span>🎯</span>المركز</button>
+    <button class="tab" onclick="mode('A',this)"><span>📍</span>من أ</button>
+    <button class="tab" onclick="mode('B',this)"><span>📍</span>من ب</button>
+    <button class="tab" onclick="mode('orbitC',this)"><span>🔃</span>م-مدار</button>
+    <button class="tab" onclick="mode('orbitS',this)"><span>🔃</span>ن-مدار</button>
+</nav>
+<script>
+const STARS = [
+  [1,"مركز1",0.1,0.1,0],[1,"نجم الشمال",89.72915,18.068236,0],[110,"التنين",98.482523,-50.72403,0],[12,"عين الدبه.",90.203064,-50.71969,0],[111,"البعوضه",80.999862,-33.471707,0],[38,"حوض الدب",76.364274,-44.41779,0],[112,"الرئيس الملك",64.513806,-60.655103,0],[34,"مخلب مبسوطه",65.481553,-39.994349,0],[113,"جبهة الاسد",49.590106,-62.456197,0],[39,"راس الاسد",52.088822,-57.333071,0],[15,"زاوية العوا .العراف",37.760685,-80.45898,0],[40,"زرافة a",75.630826,-6.745719,0],[21,"قلب الاسد.ملك.امير",41.889771,-64.6129,0],[41,"حمار سرطان.المعلف",46.239779,-51.040417,0],[114,"مقدمة راس التوأم",51.88983,-38.642124,0],[115,"كلاب سرطان",38.196301,-56.79949,0],[116,"سدسa",29.920246,-69.069246,0],[117,"الصدفه",41.527615,-49.260821,0],[42,"الكأس",17.008091,-82.627747,0],[35,"الوسط .مبسوطه.مقبوضه",43.498433,-35.924164,0],[118,"منخار الشجاع.راس حيه",29.402671,-57.698902,0],[24,"الفرد .قلب حية",21.091241,-68.337048,0],[119,"مفرغة الهواء",4.914668,-85.240729,0],[120,"ممسك اللعنه.عنزه",57.881305,-17.176045,0],[121,"شعرا شامي.عين مغمضه",28.686678,-50.760621,0],[36,"تاج .سنام.قدم.امامي",39.725251,-34.19487,0],[43,"الزر",32.408931,-41.041729,0],[44,"غزالة.عنيز",52.749112,-17.582877,0],[234,"وحيد القرن",14.282503,-56.049486,0],[45,"بوصله",-3.465878,-73.797866,0],[122,"سهيل الوزن. الصاري",-12.551984,-79.389081,0],[123,"درع صغير",0.959005,-63.410858,0],[124,"ترس القاعده",-25.442864,-88.030999,0],[37,"غزالة.كعب",45.535302,-20.437249,0],[125,"اول سفينه .قدس",-34.57571,-92.569528,0],[31,"يد الجوزاء",24.627921,-37.249715,0],[126,"سيريوس.شعرى يماني",6.590362,-52.929526,0],[127,"وزن",-2.281283,-59.639463,0],[128,"مؤخرة السفينه.عذراء",-3.598217,-61.786322,0],[129,"فلا.مصر.ظليم",-17.786757,-74.120232,0],[130,"بقعة بيضاء",26.797306,-33.476925,0],[46,"حرباءa",-43.196854,-88.324583,0],[131,"3الميزان الحق",17.282349,-37.296915,0],[47,"السيف",8.902141,-43.625328,0],[132,"مفرد حمامة",-8.286727,-54.567252,0],[133,"مبرقع ابيض واسود",-24.578892,-66.844278,0],[13,"عين الثور،المرتفع",31.210249,-22.874971,0],[26,"كرسي.رجل جبار",11.080337,-37.189077,0],[48,"ارنب",0.711495,-45.207068,0],[134,"سهيل،الصرفا",-27.272817,-65.725311,0],[135,"وزن١",-14.316201,-53.582875,0],[49,"صولجان",2.252527,-37.558988,0],[136,"جبل،منسا",-49.325713,-71.054289,0],[8,"الثريا،مربع مثلث",34.268211,-15.417216,0],[137,"بيض قيد",6.504171,-30.778134,0],[50,"بركه.الظليمين",-13.553544,-42.830025,0],[51,"ازميل كاليوم",-23.934767,-49.046175,0],[52,"ساعة بندول",-25.704465,-46.212192,0],[53,"الغول",47.038541,-4.80921,0],[54,"ضفدع٣،رنا",2.492412,-29.436907,0],[9,"بير،شبكه معين",-44.117822,-54.464082,0],[138,"ميرام",59.727788,3.247247,0],[139,"بطين",27.765085,-13.747624,0],[140,"منقار،منخار",17.580507,-17.571691,0],[55,"صوص النعام،زبال",1.809691,-25.607323,0],[141,"عش النعام ،ازها",0.712175,-23.846011,0],[27,"فرن،كور،ظليم",-16.718161,-33.725783,0],[142,"اخر النهر ١",-27.177176,-37.838357,0],[28,"الكف الجذماء",11.273432,-17.412888,0],[56,"التفاف النهر",-10.659217,-27.64025,0],[143,"ميرا،رائع",4.343934,-17.089939,0],[144,"الرشا،العقده",9.01241,-13.466387,0],[57,"راس حيه ماء هيدرا",-50.605512,-37.553591,0],[145,"راس الحمل",27.783582,-4.641904,0],[146,"بطن حوت قيطس،نعام4",-3.771436,-16.754741,0],[58,"اخر النهر ظليم ١",-47.649716,-33.598034,0],[147,"الوشق،رجل المسلسله",45.04701,2.865395,0],[11,"شرطان",24.888782,-4.611754,0],[148,"كتان،مليء",13.849215,-8.489674,0],[4,"مثلث شمالي،ميزان",32.819312,-0.955432,0],[149,"ذنب حوت جنوبي",-5.786167,-11.966991,0],[150,"نحات",-24.15451,-17.891183,0],[59,"ضفدع٢",-14.176433,-12.28063,0],[151,"عملاء،الزورق",-37.403848,-19.764707,0],[152,"ذنب حوت شمالي",-6.803088,-6.777951,0],[153,"سنام الناقه،سيچان",64.088546,12.686994,0],[60,"خف الناقه",48.639099,9.752296,0],[61,"ذيل العروس مسلسله",45.849627,8.941727,0],[154,"مأزر",36.105927,6.692216,0],[2,"المركز",0.0,0.0,0],[62,"طوقان",-61.459175,-11.425155,0],[155,"الثمنv",-77.74163,-15.655956,0],[156,"الجنب،جناح الغرس",14.604703,4.453979,0],[63,"ضفدع١،فم الحوت",-30.227476,-4.925895,0],[3,"القطب الجنوبيs",-89.894748,-16.609034,0],[157,"الساق",-17.545109,0.133717,0],[158,"بطن،النير",-48.763515,-5.370931,0],[25,"الكرسي،ركبة",59.410796,14.698455,0],[159,"مرفق،الجنب",54.052989,14.019982,0],[29,"راس مسلسل،كف خضيب",27.030148,10.881833,0],[64,"فم السمكه",0.68629,7.977146,0],[65,"جره،دلو",-7.940531,7.686553,0],[66,"طاووس١",-62.652284,0.316348,0],[67,"مقعمزة",-12.234153,8.302188,0],[68,"هندي",-53.307908,3.985162,0],[160,"ركاب",11.105248,12.132818,0],[161,"ذنب الجدي،سعد ناشره",-21.569938,9.27411,0],[72,"مجهر",-38.704487,7.775031,0],[162,"سلم،الخرب،ركاب",19.776318,14.112518,0],[163,"سعد همام",5.910178,13.142903,0],[164,"سعد الملك،ركبه",-6.060591,12.305825,0],[165,"سعد بهام",0.128915,14.300943,0],[166,"صدر،ظهر الناقه",55.427183,17.791451,0],[167,"سعد سعود",-12.531393,15.418285,0],[69,"عقرب،ركبة",-54.705686,13.945526,0],[168,"طاووس٢",-75.992711,13.202167,0],[169,"سعد البارع ،شاة",22.81666,17.813959,0],[10,"معين الرامي،رباعي",-37.074217,16.76856,0],[170,"انف",2.106532,18.974544,0],[70,"شاة مذبوحه،الجدي",-22.793468,18.974544,0],[171,"القبة.الفكه.تاج جنوبي",-49.393468,18.974544,0],[71,"منظار",-57.293468,18.974544,0],[172,"قطعة الفرس1",-3.479334,20.594127,0],[173,"نعام3+1. صادره",-42.373409,21.273026,0],[5,"مثلث a جنوبي",-84.97936,21.192182,0],[174,"سعد مطر",23.746494,21.263951,0],[175,"نعام2،نونكي",-39.514945,23.473089,0],[73,"قوس جنوبي",-48.509463,23.787185,0],[176,"مجمره،مذبح",-65.19929,24.370006,0],[14,"عين الرامي،البلده",-36.314334,25.685576,0],[75,"راس اسهم",-58.690365,26.730733,0],[74,"قوس شمالي",-40.077525,28.021959,0],[177,"نصل",-45.76364,28.419571,0],[178,"نثرة العقرب",-50.252679,28.733475,0],[76,"لسعة،شولة عقرب",-53.943665,28.991574,0],[179,"مثلثbجنوبي",-82.566567,29.580096,0],[180,"مثلثyجنوبي",-89.087779,32.41626,0],[181,"الثمن2",-105.41797,32.591008,0],[77,"طائر الجنه",-100.629663,32.256177,0],[182,"قطعة الفرس2",-6.627017,27.367642,0],[78,"مسطرة النقاش",-67.693752,32.710289,0],[7,"دلفين،قاعود",-0.117251,28.215593,0],[79,"عقربE",-53.307908,33.963926,0],[80,"فرجار",-83.83973,37.172949,0],[30,"كف الخضيب1",54.442398,23.03683,0],[81,"سوسمار",4.344582,29.40656,0],[82,"الشاهين",-6.573426,30.747123,0],[183,"الدرع",-24.141493,32.90421,0],[184,"رجل سنتاوري",-83.892771,40.240744,0],[83,"النسر الطائر",-4.471854,32.154237,0],[185,"حضار",-85.376755,43.524679,0],[186,"حرباءB",-108.251948,46.739578,0],[84,"منكب النسر",-3.141097,33.61681,0],[22,"قلب العقرب",-47.067872,40.737631,0],[187,"الذبابهa",-98.057946,48.650162,0],[188,"لية الخروف",-11.537782,36.756117,0],[189,"سابق",-35.074687,40.906309,0],[85,"بغل",-80.375844,48.894125,0],[190,"جبهة العقرب",-45.078229,45.096295,0],[6,"صليبa جنوبي",-92.845804,53.524309,0],[86,"شام،سهم",3.278233,37.017319,0],[191,"اكليل العقرب",-42.058691,46.897084,0],[192,"صليب جنوبيs",-87.165346,55.439818,0],[87,"سحليه",41.592734,30.559165,0],[193,"ذنب العقاب",-2.08938,40.074953,0],[88,"سهم",-14.171569,42.864346,0],[194,"قرن،زباني",-50.223261,51.187535,0],[195,"كتف",-63.084946,54.156889,0],[196,"الجناح",21.191772,35.957461,0],[197,"كلب الراعي",-14.903229,44.956956,0],[198,"چرافياس",-34.503203,49.843778,0],[199,"زباني العقرب",-39.257652,51.029195,0],[89,"ثعلب،نسر",8.769834,41.022,0],[200,"عنق الحيه",-12.985013,46.383481,0],[32,"يد حاوي",-26.813881,52.271537,0],[201,"كفة ميزانs",-42.290194,56.709298,0],[90,"منقار دجاجه",11.798435,42.15438,0],[202,"راس حاوي",-8.140923,48.767221,0],[203,"مرفق حاوي",-20.859776,52.655764,0],[204,"كفت ميزانn",-34.821825,56.924391,0],[91,"حافر فرس",39.666807,36.066872,0],[92,"صدر دجاجه",25.57858,40.917838,0],[205,"راس الجاثي",-7.420018,52.280166,0],[93,"رجل الحاوي",-33.421779,61.23329,0],[206,"الخيباء",-59.045332,70.056187,0],[207,"تطريز",-35.108771,64.258011,0],[208,"السماك اعزل",-42.720281,67.028374,0],[209,"ذنب دجاجة",31.331188,41.229194,0],[94,"راس حية حاوي",-17.588427,60.007674,0],[95,"الغراب",-49.983668,72.443042,0],[210,"سلحفاة",14.717398,48.984894,0],[211,"معصم",4.159833,55.117173,0],[212,"مرفق عوا",-8.543134,60.509263,0],[96,"حذاء",-31.724265,71.40694,0],[213,"ركبه دجاجه",34.753968,42.978247,0],[214,"كتف الجاثية",2.183586,56.346089,0],[97,"روما",-36.54267,78.694459,0],[215,"الراقص",46.883453,39.665662,0],[98,"النسر الواقع",19.067296,52.662222,0],[16,"زاوية العذراء",-36.174599,79.693945,0],[216,"الفكه",-1.041684,69.055378,0],[99,"السماك الرامح",-12.16861,74.555885,0],[217,"مفرد",-14.073517,76.279041,0],[218,"قرده",53.279875,39.774544,0],[219,"قصعة المساكين",0.598023,70.326763,0],[220,"ظفيره",-17.4744,80.624544,0],[221,"ازار",-3.353253,74.65016,0],[33,"يد يمين",49.109052,44.092717,0],[100,"القدر",46.776905,47.66114,0],[101,"الرمح",8.226658,73.66361,0],[17,"تمينT",28.577014,62.47185,0],[222,"راعي",9.052046,77.282841,0],[223,"كتف عوا",5.654175,79.751539,0],[102,"راس ثعبان",27.731734,65.374482,0],[103,"الراية",69.88318,33.907172,0],[224,"چروميوم",33.041165,64.53734,0],[23,"قلب ملك شهيد",1.184418,91.454217,0],[225,"الفرق",56.902852,46.16446,0],[226,"الراقص",28.865626,69.690486,0],[104,"منجل",14.387386,81.839172,0],[227,"فرح",2.363988,94.552544,0],[20,"القائد",13.989485,89.964631,0],[228,"اولاد الضباع",17.660288,88.162518,0],[229,"الذئب،التيس",47.657943,60.623133,0],[230,"اثافي",50.475129,59.185639,0],[105,"الظبع",27.690335,82.779984,0],[231,"الذيبه",38.702254,73.240989,0],[232,"مأزر،الكور",18.174103,95.254735,0],[233,"الليه",17.441905,98.788298,0],[106,"مخرز",16.581013,103.755962,0],[107,"ثعبان",28.45125,94.124558,0],[108,"الذيبان",47.195287,72.87448,0],[109,"عجل",38.933336,88.3073,0],[18,"كوكب،عجل،ركبه",39.482444,92.841792,0],[19,"يلدن،النجم",59.38761,79.481635,0],
+  [320,"32شرق ابيض",0.291413,18.042346,1],[319,"32غرب ابيض",0.291493,-13.953119,1],[318,"32شرق اسود",-31.700519,18.129742,1],[317,"32غرب اسود",-31.773391,-13.695326,1],[316,"256شرق اليض",0.316148,146.065984,1],[315,"256غرب ابيض",0.117509,-109.830763,1],[314,"256شرق ابيض",-255.749198,145.930333,1],[313,"256غرب ابيض",-255.679202,-110.010337,1],[312,"2048شرق ابيض",0.73288,1170.091887,1],[311,"2048غرب ابيض",-0.213338,-877.898893,1],[310,"2048شرق اسود",-2047.840929,1169.70989,1],[309,"2048غرب اسود",-2047.157415,-879.112203,1],[308,"16384شرق ابيض",7.770584,9362.068774,1],[307,"16384غرب ابيض",3.280399,-7022.009946,1],[306,"16384شرق اسود",-16381.88372,9375.912899,1],[305,"16384غرب اسود",-16376.45159,-7038.258401,1]
+];
+
+let curMode='center',S1=1,M1=0,S2=0.095401,M2=51.024;
+let tA1={x:0,y:0},tB1={x:0,y:0},tM2={x:0,y:0};
+let sf=null,sa=true,res=[];
+
+function dist(ax,ay,bx,by){return Math.sqrt((bx-ax)**2+(by-ay)**2)}
+function bear(ax,ay,bx,by){return((90-Math.atan2(bx-ax,by-ay)*180/Math.PI)%360+360)%360}
+function tfm(sx,sy,S,M){const r=M*Math.PI/180;return{x:(sx*Math.cos(r)-sy*Math.sin(r))*S,y:(sx*Math.sin(r)+sy*Math.cos(r))*S}}
+function coords(s,S,M){return s[4]===1?{x:s[2],y:s[3]}:tfm(s[2],s[3],S,M)}
+
+function calc(){
+    const e=document.getElementById('err'); e.textContent='';
+    const nA=document.getElementById('starA').value.trim();
+    const nB=document.getElementById('starB').value.trim();
+    const mD=parseFloat(document.getElementById('mDist').value);
+    const mB=parseFloat(document.getElementById('mBrg').value);
+    const sA=STARS.find(s=>s[1]===nA), sB=STARS.find(s=>s[1]===nB);
+    if(sA&&sB&&!isNaN(mD)&&!isNaN(mB)){
+        const d=dist(sA[2],sA[3],sB[2],sB[3]);
+        if(!d){e.textContent='النجمان متطابقان';return}
+        S1=mD/d;
+        const ang=Math.atan2(sB[2]-sA[2],sB[3]-sA[3])*180/Math.PI;
+        M1=((ang-((90-mB-5)%360+360)%360)%360+360)%360;
+        tA1=tfm(sA[2],sA[3],S1,M1); tB1=tfm(sB[2],sB[3],S1,M1);
+        document.getElementById('outS').textContent=S1.toFixed(6);
+        document.getElementById('outM').textContent=M1.toFixed(2)+'°';
+    } else {
+        document.getElementById('outS').textContent='—';
+        document.getElementById('outM').textContent='—';
+    }
+    S2=parseFloat(document.getElementById('manS').value)||0.095401;
+    M2=parseFloat(document.getElementById('manM').value)||51.024;
+    const nM=document.getElementById('starM').value.trim();
+    const sM=STARS.find(s=>s[1]===nM);
+    tM2=sM?tfm(sM[2],sM[3],S2,M2):{x:0,y:0};
+    save(); render();
+}
+
+function render(){
+    const vv=parseFloat(document.getElementById('vVar').value)||0;
+    const q=document.getElementById('srch').value.toLowerCase();
+    res=STARS.filter(s=>s[1].toLowerCase().includes(q)||s[0].toString().includes(q)).map(s=>{
+        let d,b;
+        const t1=coords(s,S1,M1),t2=coords(s,S2,M2);
+        if(curMode==='center'){d=dist(0,0,t1.x,t1.y);b=(bear(0,0,t1.x,t1.y)+vv+360)%360}
+        else if(curMode==='A'){d=dist(tA1.x,tA1.y,t1.x,t1.y);b=(bear(tA1.x,tA1.y,t1.x,t1.y)+vv+360)%360}
+        else if(curMode==='B'){d=dist(tB1.x,tB1.y,t1.x,t1.y);b=(bear(tB1.x,tB1.y,t1.x,t1.y)+vv+360)%360}
+        else if(curMode==='orbitC'){d=dist(0,0,t2.x,t2.y);b=(bear(0,0,t2.x,t2.y)+vv+360)%360}
+        else{d=dist(tM2.x,tM2.y,t2.x,t2.y);b=(bear(tM2.x,tM2.y,t2.x,t2.y)+vv+360)%360}
+        return{id:s[0],name:s[1],dist:d,brg:b,fix:s[4]===1};
+    });
+    if(sf) res.sort((a,b)=>sa?(a[sf]>b[sf]?1:-1):(a[sf]<b[sf]?1:-1));
+    document.getElementById('cnt').textContent=res.length+' نتيجة';
+    document.getElementById('tbody').innerHTML=res.map(r=>`<tr class="${r.fix?'fixed-row':''}"><td>${r.id}</td><td style="text-align:right;padding-right:8px">${r.name}</td><td>${r.dist.toFixed(3)}</td><td>${r.brg.toFixed(2)}°</td></tr>`).join('');
+}
+
+function mode(m,el){curMode=m;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render()}
+function srt(f){if(sf===f)sa=!sa;else{sf=f;sa=true}render()}
+function save(){['starA','starB','mDist','mBrg','vVar','starM','manS','manM'].forEach(id=>localStorage.setItem('sn_'+id,document.getElementById(id).value));localStorage.setItem('sn_mode',curMode)}
+function restore(){
+    ['starA','starB','mDist','mBrg','vVar','starM','manS','manM'].forEach(id=>{const v=localStorage.getItem('sn_'+id);if(v!==null)document.getElementById(id).value=v});
+    const m=localStorage.getItem('sn_mode');
+    if(m){curMode=m;const el=document.querySelector(`[onclick*="'${m}'"]`);if(el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}}
+}
+window.onload=()=>{
+    const dl=document.getElementById('sl');
+    STARS.forEach(s=>{const o=document.createElement('option');o.value=s[1];dl.appendChild(o)});
+    restore(); calc();
+};
+</script>
+</body>
+</html>
+const CACHE = 'nojom-v1';
+const FILES = ['./Nojom.html'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => 
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request))
+  );
+});
